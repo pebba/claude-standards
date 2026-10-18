@@ -1,6 +1,6 @@
 {
   "name": "std",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Always-on dev conventions, main-branch and attribution guard, release/new-repo/build skills.",
   "author": {
     "name": "pebba",

@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Versions follow SemVer; entries are generated from squash-merged PR titles.
 
+## [0.3.0] - 2026-10-18
+
+### Added
+
+- let the bump action find version files in a subdirectory ([#5](https://github.com/pebba/claude-standards/pull/5))
+
 ## [0.2.1] - 2026-10-18
 
 ### Fixed
