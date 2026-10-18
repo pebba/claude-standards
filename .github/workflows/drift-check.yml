@@ -22,7 +22,8 @@ jobs:
           ssh-key: ${{ secrets.RELEASE_KEY }}
 
       # No commit/push tools: commits are made below under the owner's identity, never as claude[bot].
-      - uses: anthropics/claude-code-action@v1
+      - id: claude
+        uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ github.token }}
@@ -30,6 +31,18 @@ jobs:
           settings: '{"attribution": {"commit": "", "pr": "", "sessionUrl": false}}'
           claude_args: >-
             --allowedTools "Read,Edit,Write,Glob,Grep,WebFetch,WebSearch,Bash(git ls-remote:*),Bash(git clone:*),Bash(git -C:*),Bash(git diff:*),Bash(diff:*),Bash(cp:*),Bash(mkdir:*),Bash(ls:*),Bash(gh api:*)"
+
+      # Report + full transcript (tool calls, denials) to check what a run actually did. Claude gets no secrets.
+      - name: Keep report and transcript
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: drift-check
+          path: |
+            drift-report.md
+            ${{ steps.claude.outputs.execution_file }}
+          retention-days: 14
+          if-no-files-found: warn
 
       - name: Open PR
         env:
