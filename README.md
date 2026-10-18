@@ -13,7 +13,7 @@ pebba's personal Claude Code plugin marketplace. It ships one plugin, **`std`**,
 | **`/std:release`** | Checks the PR title, waits for checks, squash-merges, and verifies the automatic release (tag, title, assets, CHANGELOG). |
 | **`/std:new-repo`** | Sets up a repo: merge settings, protected `main`, release deploy key, `.claude/settings.json`, CLAUDE.md, CHANGELOG, README release link, and CI and release workflows. |
 | **`std:flutter-build`**, **`std:python-exe-build`** | Build know-how for APK/AAB (signing, versioning) and PyInstaller .exe files. |
-| **Reusable workflows** | `ci-flutter`, `ci-python`, `release-flutter`, `release-python` and `conventions`. Other repos call them `@main`, so CI logic is also maintained only here. |
+| **Reusable workflows** | `ci-flutter`, `ci-python`, `release-flutter`, `release-python`, `release-generic` (no artifact: web apps, bots) and `conventions`. Other repos call them `@main`, so CI logic is also maintained only here. |
 
 Skills trigger on their own when the request matches, or explicitly as `/std:<name>`. Plugin skills are always namespaced.
 

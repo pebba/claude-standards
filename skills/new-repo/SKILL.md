@@ -2,12 +2,12 @@
 name: new-repo
 description: Set up a new or existing GitHub repo with pebba's standards. Covers squash-only merge settings, the protected main ruleset, a release deploy key, Claude settings with attribution off, CLAUDE.md, CHANGELOG.md, a README with a latest-release link, and CI/release workflows for Flutter (APK+AAB) or Python (.exe).
 when_to_use: Use when the user wants to create a new repo or project, bootstrap or onboard an existing repo onto the standards, "neues Repo anlegen", "Repo aufsetzen", "Standards einrichten", or add CI/release automation to a Flutter or Python project.
-argument-hint: "<repo-name> <flutter|python> [public|private]"
+argument-hint: "<repo-name> <flutter|python|generic> [public|private]"
 ---
 
 # New repo
 
-Templates live in `${CLAUDE_PLUGIN_ROOT}/templates`. Work through the steps in order and report what was done. If repo name, stack (`flutter` | `python`), visibility or app name (the asset base name, e.g. `3coq`) are missing from `$ARGUMENTS`, ask for them once, together.
+Templates live in `${CLAUDE_PLUGIN_ROOT}/templates`. Work through the steps in order and report what was done. If repo name, stack (`flutter` | `python` | `generic` for web apps, bots and anything without an APK/EXE artifact), visibility or app name (the asset base name, e.g. `3coq`) are missing from `$ARGUMENTS`, ask for them once, together.
 
 ## 1. Repo
 
@@ -28,7 +28,7 @@ Templates live in `${CLAUDE_PLUGIN_ROOT}/templates`. Work through the steps in o
 1. Copy `templates/settings.json` to `.claude/settings.json`. It turns on the marketplace and plugin and switches attribution off; it's also the only attribution setting cloud sessions read.
 2. Copy `templates/CLAUDE.md` to `CLAUDE.md`. Fill in what you know (commands for the stack, layout) and delete sections that stay empty.
 3. Copy `templates/CHANGELOG.md` to `CHANGELOG.md`.
-4. Copy `templates/workflows/<stack>/ci.yml` and `release.yml` to `.github/workflows/`. Replace `APP_NAME`, and for Python the `entry` path.
+4. Copy `templates/workflows/<stack>/release.yml` and `ci.yml` (flutter/python) or `pr.yml` (generic: only the PR-title/attribution check, the repo keeps its own CI) to `.github/workflows/`. Replace `APP_NAME`, and for Python the `entry` path.
 5. Make sure `.gitignore` contains these lines (append the missing ones):
    - `.claude/settings.local.json`
    - `.env` and `!.env.example`
@@ -65,7 +65,7 @@ Run these with `gh`. Each must succeed; show any error.
    ```bash
    gh api -X POST repos/pebba/<name>/rulesets --input "${CLAUDE_PLUGIN_ROOT}/templates/ruleset.json"
    ```
-   It requires PRs, squash only, linear history, no force-push or deletion, and the required check `ci / test`. After the first CI run, compare the check name with `gh pr checks` and fix it in the ruleset if it differs.
+   It requires PRs, squash only, linear history, no force-push or deletion, and the required check `ci / test`. After the first CI run, compare the check name with `gh pr checks` and fix it in the ruleset if it differs. Generic repos: point it at the repo's own PR check, or drop the `required_status_checks` rule if there is none.
 4. Flutter only, signing: tell the user to create an upload keystore once and set four secrets. Without them, release APKs are debug-signed and won't install over each other. Never generate or store the keystore password yourself.
    ```bash
    keytool -genkey -v -keystore upload-keystore.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload
