@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Versions follow SemVer; entries are generated from squash-merged PR titles.
 
+## [0.5.0] - 2026-10-18
+
+### Added
+
+- install std via claude.ai sync instead of repo settings ([#9](https://github.com/pebba/claude-standards/pull/9))
+
 ## [0.4.2] - 2026-10-18
 
 ### Changed
