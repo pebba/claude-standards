@@ -19,38 +19,25 @@ Skills trigger on their own when the request matches, or explicitly as `/std:<na
 
 ## Install
 
-### Locally, for every repo (recommended)
+### Everywhere, via claude.ai sync (recommended)
 
-Add this to `~/.claude/settings.json`:
+In claude.ai, go to **Customize → Plugins → Add → Add marketplace**, enter `pebba/claude-standards` and turn on **Sync automatically**. The synced plugin (`std@synced`) loads in cloud sessions (claude.ai/code, mobile app) and in the CLI on any machine where you're signed in to claude.ai. Nothing to install locally or per repo.
 
-```json
-{
-  "extraKnownMarketplaces": {
-    "pebba": { "source": { "source": "github", "repo": "pebba/claude-standards" }, "autoUpdate": true }
-  },
-  "enabledPlugins": { "std@pebba": true },
-  "attribution": { "commit": "", "pr": "", "sessionUrl": false }
-}
-```
+Don't also install `std@pebba` locally: a local plugin with the same name takes precedence over the synced one.
 
-Or from the CLI: `claude plugin marketplace add pebba/claude-standards`, then `claude plugin install std@pebba`. Then turn on auto-update under `/plugin` → Marketplaces. Third-party marketplaces don't auto-update by default.
+### Attribution off, per repo
 
-### Per repo
+`/std:new-repo` copies [`templates/settings.json`](templates/settings.json) to the repo's `.claude/settings.json`. It only switches attribution off. That committed file is what turns attribution off in the cloud, because cloud sessions only read project settings. Locally, add the same `attribution` block to `~/.claude/settings.json` to cover every repo.
 
-`/std:new-repo` copies [`templates/settings.json`](templates/settings.json) to the repo's `.claude/settings.json`. It registers the marketplace, enables `std@pebba` and switches attribution off. It takes effect once you trust the folder.
+### Locally, without claude.ai
 
-### Cloud sessions (claude.ai/code, mobile app)
-
-Cloud sessions **don't** install plugins from a repo's `.claude/settings.json`, and they don't read your user settings. Two things cover this:
-
-1. In claude.ai, go to **Customize → Plugins → Add → Add marketplace**, enter `pebba/claude-standards` and turn on **Sync automatically**. Synced plugins (`std@synced`) load in cloud sessions, and also in the CLI when you're signed in to claude.ai.
-2. The repo's committed `.claude/settings.json` from the template is what turns attribution off in the cloud, because cloud sessions only read project settings. Single-repo cloud sessions honour it.
+Only for machines that aren't signed in to claude.ai: `claude plugin marketplace add pebba/claude-standards`, then `claude plugin install std@pebba`. Then turn on auto-update under `/plugin` → Marketplaces. Third-party marketplaces don't auto-update by default.
 
 ## How updates reach sessions
 
 - Every merge to `main` bumps `version` in `.claude-plugin/plugin.json`. Clients compare that string, so an unchanged version means no update.
-- **Local:** with `autoUpdate: true`, Claude Code refreshes the marketplace in the background, shortly after the first message of a session. New versions load in the next session, or right away with `/reload-plugins`. Force a refresh with `claude plugin marketplace update pebba`.
-- **Cloud:** every cloud session starts on a fresh VM with the plugin version currently synced to your claude.ai account.
+- **Synced:** every cloud session starts on a fresh VM with the plugin version currently synced to your claude.ai account. The CLI picks up the synced version too.
+- **Local install:** with `autoUpdate: true`, Claude Code refreshes the marketplace in the background, shortly after the first message of a session. New versions load in the next session, or right away with `/reload-plugins`. Force a refresh with `claude plugin marketplace update pebba`.
 
 ## Versioning and releases (same rules as every repo)
 
