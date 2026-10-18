@@ -1,0 +1,67 @@
+name: validate
+
+# Push-only on purpose: a job skipped on another event reports success and would satisfy the required check.
+# PR title/body checks live in pr.yml.
+on:
+  push:
+    branches-ignore: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  # Required check on main (ruleset). Runs on push so branches pushed by automation are checked too.
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      # Official validator: marketplace.json, plugin.json, skill frontmatter, hooks/hooks.json.
+      - name: claude plugin validate --strict
+        run: npx --yes @anthropic-ai/claude-code plugin validate . --strict
+
+      # validate accepts malformed SKILL.md YAML (checked with 2.1.302), which would silently stop a skill from triggering.
+      - name: Skill frontmatter
+        run: |
+          pip install --quiet pyyaml
+          python3 - <<'EOF'
+          import pathlib, sys, yaml
+          bad = []
+          for f in sorted(pathlib.Path(".").glob("*/*/SKILL.md")):
+              try:
+                  meta = yaml.safe_load(f.read_text(encoding="utf-8").split("---")[1])
+                  assert meta["name"] == f.parent.name, "name must match the directory"
+                  assert meta["description"].strip(), "empty description"
+              except Exception as e:
+                  bad.append(f"{f}: {e!r}")
+          print("\n".join(bad) or "skill frontmatter ok")
+          sys.exit(bool(bad))
+          EOF
+
+      - name: Templates are valid JSON
+        run: python3 -m json.tool templates/settings.json > /dev/null && python3 -m json.tool templates/ruleset.json > /dev/null
+
+      - name: Guard hook
+        run: bash hooks/guard.test.sh
+
+      - name: Version bump
+        run: python3 .github/actions/bump/test_bump.py
+
+      - name: actionlint
+        run: docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.12 -color .github/workflows/*.yml templates/workflows/*/*.yml
+
+  # Cloud sessions run hooks on Linux, local sessions on Windows: the guard must work on both.
+  guard-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Guard hook (Git Bash)
+        shell: bash
+        run: bash hooks/guard.test.sh
+
+  conventions:
+    uses: ./.github/workflows/conventions.yml

@@ -1,0 +1,43 @@
+name: conventions
+# Reusable: no Claude attribution in branch commits; on PRs also a Conventional Commits title and a clean body.
+# Called by validate.yml here and by ci-flutter.yml / ci-python.yml in every other repo.
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  conventions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: No Claude attribution in commits
+        env:
+          BASE: ${{ github.event.repository.default_branch }}
+        run: |
+          pattern='co-authored-by:.*(claude|anthropic)|noreply@anthropic\.com|generated with \[?claude|claude-session:'
+          if git log "origin/$BASE..HEAD" --format='%h %B' | grep -Ei "$pattern"; then
+            echo "::error::Claude attribution found in the commits above. Reword them without it."
+            exit 1
+          fi
+
+      - name: PR title and body
+        if: github.event_name == 'pull_request'
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+          BODY: ${{ github.event.pull_request.body }}
+        run: |
+          types='feat|fix|chore|docs|ci|refactor|test|perf|build|style|revert'
+          if ! grep -Eq "^($types)(\([a-z0-9._/-]+\))?!?: [^ ].*[^.]$" <<<"$TITLE"; then
+            echo "::error::PR title must be a Conventional Commit, e.g. 'feat: add csv export' or 'fix(ui): crash on empty list'. Got: $TITLE"
+            exit 1
+          fi
+          if grep -Eiq 'co-authored-by:.*(claude|anthropic)|noreply@anthropic\.com|generated with \[?claude|claude-session:|claude\.ai/code/' <<<"$BODY"; then
+            echo "::error::PR body contains Claude attribution or a session link. Remove it."
+            exit 1
+          fi

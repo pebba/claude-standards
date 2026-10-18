@@ -1,0 +1,19 @@
+name: release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency: release
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    uses: pebba/claude-standards/.github/workflows/release-python.yml@main
+    with:
+      app-name: APP_NAME
+      entry: src/APP_NAME/__main__.py
+    secrets: inherit

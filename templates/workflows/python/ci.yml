@@ -1,0 +1,13 @@
+name: ci
+
+# PR-only, no skipped jobs: GitHub counts a skipped job as a passing required check.
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    uses: pebba/claude-standards/.github/workflows/ci-python.yml@main

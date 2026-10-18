@@ -1,0 +1,30 @@
+name: release
+# Every merge to main: bump plugin.json version (so clients see an update), write CHANGELOG, tag vX.Y.Z, publish.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency: release
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      # Deploy key: the only actor allowed to bypass the main ruleset.
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ssh-key: ${{ secrets.RELEASE_KEY }}
+
+      - id: bump
+        uses: ./.github/actions/bump
+
+      - uses: ./.github/actions/publish
+        with:
+          version: ${{ steps.bump.outputs.version }}
+          notes: ${{ steps.bump.outputs.notes }}

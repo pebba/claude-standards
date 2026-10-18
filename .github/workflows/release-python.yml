@@ -1,0 +1,65 @@
+name: release-python
+# Reusable release for Python (uv) apps: bump, test, build a Windows .exe with PyInstaller, then commit/tag/publish.
+# Caller: templates/workflows/python/release.yml with `secrets: inherit`. Secret: RELEASE_KEY (deploy key).
+
+on:
+  workflow_call:
+    inputs:
+      app-name:
+        description: Asset base name, e.g. tool -> tool.exe
+        type: string
+        required: true
+      entry:
+        description: Script PyInstaller starts from, e.g. src/tool/__main__.py
+        type: string
+        required: true
+      python-version:
+        type: string
+        default: '3.13'
+      pyinstaller-args:
+        description: Extra flags, e.g. "--noconsole --copy-metadata tool"
+        type: string
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ssh-key: ${{ secrets.RELEASE_KEY }}
+
+      - id: bump
+        uses: pebba/claude-standards/.github/actions/bump@main
+
+      - uses: astral-sh/setup-uv@v10
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      # Not --locked: the bump changed the project version, so uv.lock is refreshed and committed with it.
+      - run: uv sync
+
+      - name: Test
+        run: uv run pytest
+
+      - name: Build exe
+        env:
+          APP: ${{ inputs.app-name }}
+          ENTRY: ${{ inputs.entry }}
+          ARGS: ${{ inputs.pyinstaller-args }}
+        run: |
+          # shellcheck disable=SC2086 # ARGS is a flag list
+          uv run --with pyinstaller pyinstaller --onefile --name "$APP" $ARGS "$ENTRY"
+
+      - uses: pebba/claude-standards/.github/actions/publish@main
+        with:
+          version: ${{ steps.bump.outputs.version }}
+          notes: ${{ steps.bump.outputs.notes }}
+          assets: dist/${{ inputs.app-name }}.exe

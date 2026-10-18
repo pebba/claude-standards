@@ -1,0 +1,43 @@
+name: ci-python
+# Reusable PR checks for Python (uv) repos. Caller: templates/workflows/python/ci.yml (required check: "ci / test").
+
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        type: string
+        default: '3.13'
+      os:
+        description: Runner for the tests; use windows-latest for Windows-only apps
+        type: string
+        default: ubuntu-latest
+
+permissions:
+  contents: read
+
+jobs:
+  conventions:
+    uses: pebba/claude-standards/.github/workflows/conventions.yml@main
+
+  test:
+    runs-on: ${{ inputs.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: astral-sh/setup-uv@v10
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - run: uv sync --locked
+
+      - name: Format
+        run: uv run ruff format --check .
+
+      - name: Lint
+        run: uv run ruff check .
+
+      - name: Test
+        run: uv run pytest
