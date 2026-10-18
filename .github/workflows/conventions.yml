@@ -41,3 +41,8 @@ jobs:
             echo "::error::PR body contains Claude attribution or a session link. Remove it."
             exit 1
           fi
+          # The body becomes the squash commit message; a skip marker in it would silently skip the release.
+          if grep -Eiq '\[(skip ci|ci skip|no ci|skip actions|actions skip)\]|skip-checks: *true' <<<"$TITLE $BODY"; then
+            echo "::error::PR title/body contains a CI skip marker. It would end up in the squash commit and skip the release. Reword it."
+            exit 1
+          fi
