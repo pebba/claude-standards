@@ -1,0 +1,27 @@
+name: release-generic
+# Reusable release for repos without a build artifact (web apps, bots, plugins): bump, CHANGELOG, tag, GitHub release.
+# Existing deploy workflows stay untouched; the release commit carries [skip ci], so it never triggers a second deploy.
+# Caller: templates/workflows/generic/release.yml with `secrets: inherit`. Secret: RELEASE_KEY (deploy key).
+
+on:
+  workflow_call:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ssh-key: ${{ secrets.RELEASE_KEY }}
+
+      - id: bump
+        uses: pebba/claude-standards/.github/actions/bump@main
+
+      - uses: pebba/claude-standards/.github/actions/publish@main
+        with:
+          version: ${{ steps.bump.outputs.version }}
+          notes: ${{ steps.bump.outputs.notes }}
