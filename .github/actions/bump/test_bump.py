@@ -34,6 +34,16 @@ with tempfile.TemporaryDirectory() as d:
     assert 'version = "1.3.0"' in py and 'version = "keep"' in py
     assert json.loads(Path(".claude-plugin/plugin.json").read_text(encoding="utf-8"))["version"] == "1.3.0"
 
+    for f in ("pubspec.yaml", "pyproject.toml", ".claude-plugin/plugin.json"):
+        Path(f).unlink()
+    Path("package.json").write_bytes(b'{\r\n  "name": "web",\r\n  "version": "0.4.2",\r\n  "deps": {"x": {"version": "9.9.9"}}\r\n}\r\n')
+    Path("build.gradle.kts").write_text('plugins { java }\ngroup = "a"\nversion = "0.4.2"\n', encoding="utf-8")
+    assert bump.file_version() == "0.4.2"
+    bump.write_version("0.5.0")
+    pkg = Path("package.json").read_bytes()
+    assert b'"version": "0.5.0",\r\n' in pkg and b'"version": "9.9.9"' in pkg, pkg
+    assert 'version = "0.5.0"' in Path("build.gradle.kts").read_text(encoding="utf-8")
+
     bump.write_changelog("## [1.0.0] - d\n\n- a\n")
     bump.write_changelog("## [1.1.0] - d\n\n- b\n")
     log = Path("CHANGELOG.md").read_text(encoding="utf-8")

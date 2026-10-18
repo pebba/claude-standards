@@ -2,8 +2,8 @@
 
 Base version: the last vX.Y.Z tag, else the version already in the repo's version file, else 0.0.0.
 Bump (Conventional Commits subject): "type!:" or "BREAKING CHANGE" in the body -> major, feat -> minor, else patch.
-Writes: pubspec.yaml (X.Y.Z+N, N incremented), pyproject.toml, .claude-plugin/plugin.json (whichever exist),
-and a new CHANGELOG.md section. Prints the version; writes the release notes to argv[1] if given.
+Writes (whichever exist): pubspec.yaml (X.Y.Z+N, N incremented), pyproject.toml, package.json, build.gradle(.kts),
+.claude-plugin/plugin.json, and a new CHANGELOG.md section. Prints the version; writes the release notes to argv[1] if given.
 """
 
 import datetime
@@ -19,9 +19,27 @@ VERSION_DIR = Path(os.environ.get("BUMP_VERSION_DIR") or ".")
 PUBSPEC = VERSION_DIR / "pubspec.yaml"
 PYPROJECT = VERSION_DIR / "pyproject.toml"
 PLUGIN = Path(".claude-plugin/plugin.json")
+# One-line versions, edited in place so the rest of the file keeps its formatting. First match per file wins.
+LINE_VERSIONS = [
+    (PYPROJECT, r'^(version\s*=\s*")(\d+\.\d+\.\d+)(")'),
+    (VERSION_DIR / "package.json", r'^(\s*"version"\s*:\s*")(\d+\.\d+\.\d+)(")'),
+    (VERSION_DIR / "build.gradle.kts", r'^(version\s*=\s*")(\d+\.\d+\.\d+)(")'),
+    (VERSION_DIR / "build.gradle", r"""^(version\s*=?\s*["'])(\d+\.\d+\.\d+)(["'])"""),
+]
 CHANGELOG = Path("CHANGELOG.md")
 HEADER = "# Changelog\n\nAll notable changes to this project are documented here. Versions follow SemVer; entries are generated from squash-merged PR titles.\n"
 SECTIONS = {"feat": "Added", "fix": "Fixed"}
+
+
+def read(path):
+    # newline="" keeps CRLF files CRLF when this runs on a Windows runner.
+    with open(path, encoding="utf-8", newline="") as f:
+        return f.read()
+
+
+def write(path, text):
+    with open(path, "w", encoding="utf-8", newline="") as f:
+        f.write(text)
 
 
 def git(*args):
@@ -40,13 +58,13 @@ def next_version(base, subject, body=""):
 
 def file_version():
     if PUBSPEC.exists():
-        m = re.search(r"^version:\s*(\d+\.\d+\.\d+)", PUBSPEC.read_text(encoding="utf-8"), re.M)
+        m = re.search(r"^version:\s*(\d+\.\d+\.\d+)", read(PUBSPEC), re.M)
         if m:
             return m.group(1)
-    if PYPROJECT.exists():
-        m = re.search(r'^version\s*=\s*"(\d+\.\d+\.\d+)"', PYPROJECT.read_text(encoding="utf-8"), re.M)
+    for path, pattern in LINE_VERSIONS:
+        m = re.search(pattern, read(path), re.M) if path.exists() else None
         if m:
-            return m.group(1)
+            return m.group(2)
     if PLUGIN.exists():
         return json.loads(PLUGIN.read_text(encoding="utf-8")).get("version", "0.0.0")
     return "0.0.0"
@@ -54,15 +72,15 @@ def file_version():
 
 def write_version(version):
     if PUBSPEC.exists():
-        text = PUBSPEC.read_text(encoding="utf-8")
-        m = re.search(r"^version:[ \t]*\S+?(?:\+(\d+))?[ \t]*$", text, re.M)
+        text = read(PUBSPEC)
+        m = re.search(r"^version:[ \t]*\S+?(?:\+(\d+))?[ \t]*(?=\r?$)", text, re.M)
         build = int(m.group(1) or 0) + 1 if m else 1
         line = f"version: {version}+{build}"
         text = text.replace(m.group(0), line, 1) if m else text.rstrip("\n") + f"\n{line}\n"
-        PUBSPEC.write_text(text, encoding="utf-8")
-    if PYPROJECT.exists():
-        text = PYPROJECT.read_text(encoding="utf-8")
-        PYPROJECT.write_text(re.sub(r'^version\s*=\s*"[^"]*"', f'version = "{version}"', text, count=1, flags=re.M), encoding="utf-8")
+        write(PUBSPEC, text)
+    for path, pattern in LINE_VERSIONS:
+        if path.exists():
+            write(path, re.sub(pattern, rf"\g<1>{version}\g<3>", read(path), count=1, flags=re.M))
     if PLUGIN.exists():
         data = json.loads(PLUGIN.read_text(encoding="utf-8"))
         data["version"] = version
