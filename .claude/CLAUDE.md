@@ -19,11 +19,12 @@ Never add Claude attribution (Co-Authored-By, "Generated with Claude Code", sess
 - `skills/<name>/SKILL.md`: own skills, invoked as `/std:<name>`. `external/`: copied third-party skills plus `SOURCES.md`.
 - `templates/`: files `/std:new-repo` copies into other repos.
 - `.github/actions/`: `bump` (version + CHANGELOG) and `publish` (commit, tag, release), shared by every repo's release.
-- `.github/workflows/`: this repo's `validate`, `release` and `drift-check`, plus the reusable `conventions`, `ci-*` and `release-*` workflows other repos call `@main`.
+- `.github/workflows/`: this repo's `validate` (push, required check), `pr` (title/body), `release` and `drift-check`, plus the reusable `conventions`, `ci-*` and `release-*` workflows other repos call `@main`.
 
 ## Rules for this repo
 
 - Other repos call the reusable workflows and actions at `@main`. Any change to their inputs or behaviour must stay backwards compatible, or every caller has to be updated in the same rollout.
 - New skills need a `description` that leads with the use case and a `when_to_use` with the phrases the user actually says (German and English).
 - Shell in hooks must run in Git Bash on Windows and in bash on Linux: no jq, no GNU-only flags beyond what Git Bash ships.
+- Never use `if:` on a job that is a required check: GitHub reports a skipped job as success.
 - Don't add a top-level `bin/` directory, because claude.ai plugin sync rejects plugins that have one.

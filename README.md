@@ -106,4 +106,4 @@ python .github/actions/bump/test_bump.py
 claude --plugin-dir .          # try the working tree without installing
 ```
 
-CI (`validate.yml`) runs all of these, plus actionlint and the guard test on Windows. It also checks PR titles and refuses Claude attribution in commits and PR bodies.
+CI runs all of these on every branch push (`validate.yml`, the required check), plus actionlint and the guard test on Windows. `pr.yml` checks PR titles and refuses Claude attribution in commits and PR bodies. Required checks are never jobs that can be skipped, because GitHub counts a skipped job as passed.

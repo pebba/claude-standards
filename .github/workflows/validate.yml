@@ -1,10 +1,10 @@
 name: validate
 
+# Push-only on purpose: a job skipped on another event reports success and would satisfy the required check.
+# PR title/body checks live in pr.yml.
 on:
   push:
     branches-ignore: [main]
-  pull_request:
-    types: [opened, edited, synchronize, reopened]
 
 permissions:
   contents: read
@@ -12,7 +12,6 @@ permissions:
 jobs:
   # Required check on main (ruleset). Runs on push so branches pushed by automation are checked too.
   validate:
-    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -57,7 +56,6 @@ jobs:
 
   # Cloud sessions run hooks on Linux, local sessions on Windows: the guard must work on both.
   guard-windows:
-    if: github.event_name == 'push'
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v7

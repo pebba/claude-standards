@@ -20,7 +20,6 @@ jobs:
     uses: pebba/claude-standards/.github/workflows/conventions.yml@main
 
   test:
-    if: github.event_name == 'push'
     runs-on: ${{ inputs.os }}
     defaults:
       run:
