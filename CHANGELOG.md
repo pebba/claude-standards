@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Versions follow SemVer; entries are generated from squash-merged PR titles.
 
+## [0.4.2] - 2026-10-18
+
+### Changed
+
+- drop repo-level std plugin and marketplace settings ([#8](https://github.com/pebba/claude-standards/pull/8))
+
 ## [0.4.1] - 2026-10-18
 
 ### Changed
