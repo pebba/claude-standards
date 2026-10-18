@@ -1,0 +1,20 @@
+name: bump
+description: Compute the next SemVer from the squash commit on main and write it into version files and CHANGELOG.md (see bump.py).
+outputs:
+  version:
+    description: New version, X.Y.Z
+    value: ${{ steps.bump.outputs.version }}
+  notes:
+    description: Path to the release notes (the new CHANGELOG section)
+    value: ${{ steps.bump.outputs.notes }}
+runs:
+  using: composite
+  steps:
+    - id: bump
+      shell: bash
+      run: |
+        py=$(command -v python3 || command -v python)
+        notes="$RUNNER_TEMP/release-notes.md"
+        version=$("$py" "$GITHUB_ACTION_PATH/bump.py" "$notes")
+        echo "version=$version" >> "$GITHUB_OUTPUT"
+        echo "notes=$notes" >> "$GITHUB_OUTPUT"

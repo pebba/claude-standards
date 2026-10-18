@@ -1,0 +1,55 @@
+name: drift-check
+# Monthly: Claude compares current Claude Code docs/changelog and upstream external skills with this repo,
+# edits the working tree only, and this workflow opens a PR. Never auto-merged.
+# Secrets: CLAUDE_CODE_OAUTH_TOKEN (`claude setup-token`), RELEASE_KEY (pushes the branch so validate runs).
+
+on:
+  schedule:
+    - cron: '0 6 1 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ssh-key: ${{ secrets.RELEASE_KEY }}
+
+      # No commit/push tools: commits are made below under the owner's identity, never as claude[bot].
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ github.token }}
+          prompt: Follow the instructions in .github/drift-check.md exactly.
+          settings: '{"attribution": {"commit": "", "pr": "", "sessionUrl": false}}'
+          claude_args: >-
+            --allowedTools "Read,Edit,Write,Glob,Grep,WebFetch,WebSearch,Bash(git ls-remote:*),Bash(git clone:*),Bash(git -C:*),Bash(git diff:*),Bash(diff:*),Bash(cp:*),Bash(mkdir:*),Bash(ls:*),Bash(gh api:*)"
+
+      - name: Open PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OWNER: ${{ github.repository_owner }}
+          OWNER_ID: ${{ github.repository_owner_id }}
+        run: |
+          month=$(date -u +%Y-%m)
+          report="$RUNNER_TEMP/report.md"
+          if [ -f drift-report.md ]; then mv drift-report.md "$report"; else echo "No report written." > "$report"; fi
+          cat "$report" >> "$GITHUB_STEP_SUMMARY"
+          if [ -z "$(git status --porcelain)" ]; then echo "No drift."; exit 0; fi
+
+          grep -Eiv 'co-authored-by|generated with \[?claude|claude-session:' "$report" > "$RUNNER_TEMP/body.md"
+          branch="drift-$month"
+          git config user.name "$OWNER"
+          git config user.email "$OWNER_ID+$OWNER@users.noreply.github.com"
+          git switch -c "$branch"
+          git add -A
+          git commit -m "chore: claude code drift $month"
+          git push --force -u origin "$branch"
+          gh pr create --base main --head "$branch" --title "chore: claude code drift $month" --body-file "$RUNNER_TEMP/body.md" \
+            || gh pr edit "$branch" --body-file "$RUNNER_TEMP/body.md"

@@ -1,0 +1,2 @@
+# LF everywhere: Windows clones with core.autocrlf=true would otherwise give guard.sh CRLF, which bash can't run.
+* text=auto eol=lf

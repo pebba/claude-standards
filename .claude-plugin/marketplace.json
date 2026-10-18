@@ -1,0 +1,15 @@
+{
+  "name": "pebba",
+  "description": "pebba's personal Claude Code standards: conventions, release automation and repo setup.",
+  "owner": {
+    "name": "pebba",
+    "url": "https://github.com/pebba"
+  },
+  "plugins": [
+    {
+      "name": "std",
+      "source": "./",
+      "description": "Always-on dev conventions, main-branch and attribution guard, release/new-repo/build skills."
+    }
+  ]
+}

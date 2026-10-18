@@ -1,0 +1,14 @@
+name: ci
+
+on:
+  push:
+    branches-ignore: [main]
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    uses: pebba/claude-standards/.github/workflows/ci-python.yml@main

@@ -1,0 +1,92 @@
+name: release-flutter
+# Reusable release for Flutter apps: bump, gate, build signed APK + AAB, then commit/tag/publish.
+# Builds before anything is pushed, so a failed build never leaves a tag without a release.
+# Caller: templates/workflows/flutter/release.yml with `secrets: inherit`.
+# Secrets: RELEASE_KEY (deploy key, required); ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD,
+# ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD (optional; without them the APK is debug-signed).
+
+on:
+  workflow_call:
+    inputs:
+      app-name:
+        description: Asset base name, e.g. 3coq -> 3coq.apk / 3coq.aab
+        type: string
+        required: true
+      java-version:
+        type: string
+        default: '17'
+      flutter-version:
+        description: Exact Flutter version; empty = latest stable
+        type: string
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    # Secrets aren't usable in step `if:`, so the keystore is lifted into env and tested there.
+    env:
+      ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ssh-key: ${{ secrets.RELEASE_KEY }}
+
+      - id: bump
+        uses: pebba/claude-standards/.github/actions/bump@main
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: ${{ inputs.java-version }}
+          cache: gradle
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ inputs.flutter-version }}
+          cache: true
+
+      - run: flutter pub get
+
+      - name: Gate (analyze + test)
+        run: flutter analyze && flutter test
+
+      - name: Configure signing key
+        if: env.ANDROID_KEYSTORE_BASE64 != ''
+        env:
+          STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
+          cat > android/key.properties <<EOF
+          storeFile=app/upload-keystore.jks
+          storePassword=$STORE_PASSWORD
+          keyAlias=$KEY_ALIAS
+          keyPassword=$KEY_PASSWORD
+          EOF
+
+      - name: Build APK + AAB
+        run: flutter build apk --release && flutter build appbundle --release
+
+      - name: Collect artifacts
+        env:
+          APP: ${{ inputs.app-name }}
+          NOTES: ${{ steps.bump.outputs.notes }}
+        run: |
+          mkdir -p dist
+          cp build/app/outputs/flutter-apk/app-release.apk "dist/$APP.apk"
+          cp build/app/outputs/bundle/release/app-release.aab "dist/$APP.aab"
+          if [ -z "$ANDROID_KEYSTORE_BASE64" ]; then
+            printf '\n> Signed with a throwaway debug key: Android refuses to install it over a previous build. Set the ANDROID_* signing secrets to fix this.\n' >> "$NOTES"
+          fi
+
+      - uses: pebba/claude-standards/.github/actions/publish@main
+        with:
+          version: ${{ steps.bump.outputs.version }}
+          notes: ${{ steps.bump.outputs.notes }}
+          assets: dist/${{ inputs.app-name }}.apk dist/${{ inputs.app-name }}.aab
