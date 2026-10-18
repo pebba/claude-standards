@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Versions follow SemVer; entries are generated from squash-merged PR titles.
 
+## [0.4.1] - 2026-10-18
+
+### Changed
+
+- keep drift-check report and transcript as artifact ([#7](https://github.com/pebba/claude-standards/pull/7))
+
 ## [0.4.0] - 2026-10-18
 
 ### Added
