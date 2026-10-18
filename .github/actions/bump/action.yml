@@ -1,5 +1,9 @@
 name: bump
 description: Compute the next SemVer from the squash commit on main and write it into version files and CHANGELOG.md (see bump.py).
+inputs:
+  version-dir:
+    description: Directory holding pubspec.yaml / pyproject.toml, relative to the repo root
+    default: '.'
 outputs:
   version:
     description: New version, X.Y.Z
@@ -12,6 +16,8 @@ runs:
   steps:
     - id: bump
       shell: bash
+      env:
+        BUMP_VERSION_DIR: ${{ inputs.version-dir }}
       run: |
         py=$(command -v python3 || command -v python)
         notes="$RUNNER_TEMP/release-notes.md"
