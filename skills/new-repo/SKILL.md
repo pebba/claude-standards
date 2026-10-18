@@ -25,7 +25,7 @@ Templates live in `${CLAUDE_PLUGIN_ROOT}/templates`. Work through the steps in o
 
 ## 3. Standard files
 
-1. Copy `templates/settings.json` to `.claude/settings.json`. It turns on the marketplace and plugin and switches attribution off; it's also the only attribution setting cloud sessions read.
+1. Copy `templates/settings.json` to `.claude/settings.json`. It switches attribution off; it's the only attribution setting cloud sessions read. The `std` plugin itself comes from claude.ai sync, not from repo settings.
 2. Copy `templates/CLAUDE.md` to `CLAUDE.md`. Fill in what you know (commands for the stack, layout) and delete sections that stay empty.
 3. Copy `templates/CHANGELOG.md` to `CHANGELOG.md`.
 4. Copy `templates/workflows/<stack>/release.yml` and `ci.yml` (flutter/python) or `pr.yml` (generic: only the PR-title/attribution check, the repo keeps its own CI) to `.github/workflows/`. Replace `APP_NAME`, and for Python the `entry` path.
