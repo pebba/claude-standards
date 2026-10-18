@@ -1,6 +1,6 @@
 {
   "name": "std",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Always-on dev conventions, main-branch and attribution guard, release/new-repo/build skills.",
   "author": {
     "name": "pebba",
@@ -9,5 +9,7 @@
   "homepage": "https://github.com/pebba/claude-standards",
   "repository": "https://github.com/pebba/claude-standards",
   "license": "MIT",
-  "skills": ["./external"]
+  "skills": [
+    "./external"
+  ]
 }
