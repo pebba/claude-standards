@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Versions follow SemVer; entries are generated from squash-merged PR titles.
 
+## [0.5.1] - 2026-10-20
+
+### Changed
+
+- summarize the enforced standards in the README ([#10](https://github.com/pebba/claude-standards/pull/10))
+
 ## [0.5.0] - 2026-10-18
 
 ### Added
