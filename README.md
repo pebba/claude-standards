@@ -4,6 +4,21 @@
 
 pebba's personal Claude Code plugin marketplace. It ships one plugin, **`std`**, which brings the same dev conventions into every Claude Code session, locally and in the cloud (web and phone). The conventions are maintained here and nowhere else.
 
+## The standards in short
+
+Every repo that uses this gets the same rules:
+
+- **No Claude attribution.** No "Co-Authored-By: Claude", "Generated with Claude Code" or session links in commits, PRs, tags or releases. A local hook blocks it and CI fails the PR if it slips through.
+- **`main` is protected.** Nobody pushes to `main` directly, everything goes through a PR. Merges are squash only, so history stays linear. Force pushes and deleting `main` are blocked.
+- **CI must be green before merge.** Flutter: `dart format`, `flutter analyze` with no infos, `flutter test`. Python: `ruff format`, `ruff check`, `pytest`.
+- **PR titles are Conventional Commits** (`feat: …`, `fix: …`, `feat!: …`). CI rejects anything else, and rejects CI skip markers in the title or body.
+- **Releases are automatic.** Every merge to `main` bumps the version from the PR title (breaking → major, `feat` → minor, rest → patch), writes the CHANGELOG entry, tags `vX.Y.Z` and publishes a GitHub Release. Nobody bumps versions or tags by hand.
+- **Stable download links.** Release files keep fixed names (`<app>.apk`, `<app>.aab`, `<app>.exe`), so `releases/latest/download/<file>` always works.
+- **Every repo has the basics:** a CHANGELOG.md, a README with a link to the latest release, and a CLAUDE.md.
+- **Clean git habits.** Few branches named after the work, small commits with English messages that say why.
+
+A repo can opt out of a rule only by writing the deviation into its CLAUDE.md.
+
 ## What the plugin does
 
 | Part | What it does |
