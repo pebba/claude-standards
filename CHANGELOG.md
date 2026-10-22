@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Versions follow SemVer; entries are generated from squash-merged PR titles.
 
+## [0.6.0] - 2026-10-22
+
+### Added
+
+- skip ci on draft pull requests ([#11](https://github.com/pebba/claude-standards/pull/11))
+
 ## [0.5.1] - 2026-10-20
 
 ### Changed
