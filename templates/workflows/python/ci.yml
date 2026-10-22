@@ -1,13 +1,16 @@
 name: ci
 
-# PR-only, no skipped jobs: GitHub counts a skipped job as a passing required check.
+# PR-only, and not on a draft: marking it ready (`ready_for_review`) runs it.
+# The skip sits on this calling job, never on the required `ci / test`: a skipped
+# job counts as a passing check, a skipped caller reports no `ci / test` at all.
 on:
   pull_request:
-    types: [opened, edited, synchronize, reopened]
+    types: [opened, edited, synchronize, reopened, ready_for_review]
 
 permissions:
   contents: read
 
 jobs:
   ci:
+    if: ${{ !github.event.pull_request.draft }}
     uses: pebba/claude-standards/.github/workflows/ci-python.yml@main

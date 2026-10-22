@@ -26,5 +26,5 @@ Never add Claude attribution (Co-Authored-By, "Generated with Claude Code", sess
 - Other repos call the reusable workflows and actions at `@main`. Any change to their inputs or behaviour must stay backwards compatible, or every caller has to be updated in the same rollout.
 - New skills need a `description` that leads with the use case and a `when_to_use` with the phrases the user actually says (German and English).
 - Shell in hooks must run in Git Bash on Windows and in bash on Linux: no jq, no GNU-only flags beyond what Git Bash ships.
-- Never use `if:` on a job that is a required check: GitHub reports a skipped job as success.
+- Never use `if:` on a job that is a required check: GitHub reports a skipped job as success. A skip (like the draft skip in `templates/workflows/`) goes on the job that calls the reusable workflow, which then reports no required check at all.
 - Don't add a top-level `bin/` directory, because claude.ai plugin sync rejects plugins that have one.
