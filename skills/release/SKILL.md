@@ -16,7 +16,7 @@ Releases are automatic: every squash merge to `main` triggers the repo's `releas
   1. Make sure the working tree is committed. Never commit to or push `main`.
   2. Run `git push -u origin HEAD`.
   3. Run `gh pr create --title "<type>: <summary>" --body-file <file>`. The body has what/why plus `## Verification` with the exact commands that ran.
-- Draft PRs: ask before running `gh pr ready`.
+- Draft PRs: ask before running `gh pr ready`. A draft runs no CI, so its checks start only then.
 
 ## 2. Check the title, since it decides the version
 
