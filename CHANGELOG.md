@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Versions follow SemVer; entries are generated from squash-merged PR titles.
 
+## [0.6.1] - 2026-11-16
+
+### Fixed
+
+- let org repos pass signing secrets to release-flutter ([#12](https://github.com/pebba/claude-standards/pull/12))
+
 ## [0.6.0] - 2026-10-22
 
 ### Added
