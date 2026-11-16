@@ -1,7 +1,8 @@
 name: release-flutter
 # Reusable release for Flutter apps: bump, gate, build signed APK + AAB, then commit/tag/publish.
 # Builds before anything is pushed, so a failed build never leaves a tag without a release.
-# Caller: templates/workflows/flutter/release.yml with `secrets: inherit`.
+# Caller: templates/workflows/flutter/release.yml, which passes the secrets by name:
+# `secrets: inherit` only works inside one org, and callers in an org cannot inherit from this user repo.
 # Secrets: RELEASE_KEY (deploy key, required); ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD,
 # ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD (optional; without them the APK is debug-signed).
 
@@ -19,6 +20,17 @@ on:
         description: Exact Flutter version; empty = latest stable
         type: string
         default: ''
+    secrets:
+      RELEASE_KEY:
+        required: false
+      ANDROID_KEYSTORE_BASE64:
+        required: false
+      ANDROID_KEYSTORE_PASSWORD:
+        required: false
+      ANDROID_KEY_ALIAS:
+        required: false
+      ANDROID_KEY_PASSWORD:
+        required: false
 
 permissions:
   contents: write
